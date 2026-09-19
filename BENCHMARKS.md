@@ -1,17 +1,17 @@
-# SchemaGraph: Empirical Cross-Site Entity Graph Integrity Benchmark
+# SchemaGraph: 12-Site Entity Graph Integrity Study
 
-Evaluation of Schema.org JSON-LD knowledge graph integrity across 12 production websites gathered while beta testing on random sites.
+Evaluation of Schema.org JSON-LD knowledge graph integrity across 12 production websites gathered during local testing.
 
 ---
 
 ## Methodology
 
-Evaluated while beta testing on random sites using SchemaGraph v1.0.0. Audits measured:
+Evaluated using SchemaGraph v1.0.0. Audits measured:
 1. Total JSON-LD entity nodes extracted across all crawled pages per domain.
-2. `@id` reference resolution rates: percentage of inter-entity references that resolve to defined nodes.
+2. `@id` reference resolution rates: percentage of inter-entity references that resolve to defined nodes within the crawled cluster.
 3. Orphan entity detection: nodes declared but never referenced by any other entity in the graph.
 4. Publisher and author metadata consistency across multi-page content clusters.
-5. Disambiguation signal coverage: `sameAs` links to Wikidata, Wikipedia, or social profiles on key entity types.
+5. Disambiguation signal coverage: `sameAs` links to Wikidata, Wikipedia, or verified social profiles on key entity types.
 
 Testing environment: Python 3.10, 2026-09-19. Crawled up to 20 pages per domain via sitemap discovery.
 
@@ -36,19 +36,19 @@ Testing environment: Python 3.10, 2026-09-19. Crawled up to 20 pages per domain 
 
 ---
 
-## Key Engineering Findings
+## Key Engineering Observations
 
 ### 1. Cross-Page @id Resolution Failures Are Common
-58.3% of surveyed production domains contain at least one broken `@id` reference: an entity node references another entity by URI, but no page in the crawled cluster defines a node with that `@id`. The most common pattern is Article nodes referencing an `author` or `publisher` `@id` that exists only on the homepage and is not defined on individual post pages.
+58.3% of surveyed production domains contained at least one broken `@id` reference: an entity node referenced another entity by URI, but no crawled page defined a node matching that identifier. The most frequent failure was an `Article` node referencing an author or publisher `@id` that existed only on the homepage and was omitted from post-level markup.
 
 ### 2. Orphan Entity Nodes Dominate Small Schema Deployments
-Domains deploying fewer than 20 total JSON-LD entities average 65% orphan node rates. These are typically `WebSite`, `Organization`, or `SearchAction` nodes declared on the homepage but never referenced by any content-level entity. Without incoming edges, these nodes exist in isolation and provide zero graph connectivity signal to Knowledge Graph parsers.
+Domains deploying fewer than 20 total JSON-LD entities exhibited high orphan node rates (averaging 65%). These were typically `WebSite` or `SearchAction` nodes declared without relationship edges linking them to content-level entities (`Article`, `Product`, or `CollectionPage`).
 
 ### 3. Publisher Metadata Drift Correlates with CMS Template Fragmentation
-16.7% of surveyed domains exhibit publisher name drift: the `publisher.name` value varies across pages (e.g., "Shopify" vs "Shopify Inc" vs "Shopify - Commerce Platform"). This fragmentation causes Google to treat each variant as a potentially distinct entity, diluting publisher authority signals.
+16.7% of surveyed domains exhibited publisher name variation across templates (e.g., "Brand" vs "Brand Inc" vs "Brand - Official Portal"). Inconsistent naming across templates breaks identifier uniformity across content sections.
 
-### 4. sameAs Disambiguation Remains Severely Under-Deployed
-75% of surveyed domains have zero `sameAs` links on their primary `Organization` entity node. Only domains with explicit Knowledge Graph strategies (schema.org, webaudits.pro, wikipedia.org) maintain cross-platform disambiguation links to Wikidata, Wikipedia, or verified social profiles. Without `sameAs`, Google cannot confidently reconcile a site's entity claims with its Knowledge Graph entry.
+### 4. sameAs Disambiguation Under-Deployment
+75% of surveyed domains provided no `sameAs` links on their primary `Organization` entity. Only domains with dedicated structured data workflows maintained explicit outbound entity references to Wikidata or verified organizational profiles.
 
 ### 5. Circular Reference Chains Are Rare in Production
-0% of surveyed domains exhibited circular `@id` resolution chains. This suggests that circular references are primarily an implementation risk in hand-coded JSON-LD rather than in CMS-generated structured data. However, custom schema implementations with bidirectional relationships (Person.worksFor -> Organization.founder -> Person) remain a theoretical risk vector.
+0% of surveyed production websites exhibited circular `@id` reference chains. Circular references remain an implementation concern during manual JSON-LD authoring rather than a prevalent artifact of CMS automated schema generators.
