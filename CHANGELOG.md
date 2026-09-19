@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-09-20
+ 
+### Added
+- Real-world CMS JSON-LD comment and syntax resilience in `extractor.py`:
+  - Strips JavaScript block comments (`/* ... */`) and line comments (`// ...`) without corrupting `http://` or `https://` URLs.
+  - Automatically cleans trailing commas in arrays and objects across defensive extraction fallbacks.
+  - Added unit test `test_commented_jsonld_with_trailing_commas`.
+
+## [1.1.0] - 2026-09-20
+
+### Added
+- Defensive entity unescaping engine in `extractor.py` inspired by `extruct`:
+  - Automatic unescaping of KSES-encoded JSON-LD script blocks containing `&quot;`, `&#039;`, or `&amp;`.
+  - Recursive property string cleaning to resolve double-escaped entities like `&amp;#038;` into clean unescaped text.
+  - Comprehensive unit tests covering WordPress KSES entity mangling and double-escaped ampersand resolution.
+
 ## [1.0.0] - 2026-09-19
 
 ### Added

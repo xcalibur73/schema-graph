@@ -14,6 +14,7 @@ This module handles:
 
 import copy
 import gzip
+import html as html_lib
 import json
 import os
 import re
@@ -21,6 +22,25 @@ import sys
 import urllib.parse
 from typing import Any, Dict, List, Optional, Set
 import xml.etree.ElementTree as ET
+
+def _defensive_unescape_json_str(raw: str) -> str:
+    """Defensively unescapes HTML entities in raw JSON strings to rescue KSES-mangled blocks."""
+    if "&quot;" in raw or "&#039;" in raw or "&apos;" in raw or "&#34;" in raw or "&amp;" in raw:
+        return html_lib.unescape(raw)
+    return raw
+
+def _clean_entity_strings(obj: Any) -> Any:
+    """Recursively unescapes HTML entities in extracted string properties (e.g. &amp;#038; -> &)."""
+    if isinstance(obj, str):
+        # Unescape twice to resolve double-encoded entities like &amp;#038; -> &#038; -> &
+        first = html_lib.unescape(obj)
+        second = html_lib.unescape(first)
+        return second
+    elif isinstance(obj, list):
+        return [_clean_entity_strings(item) for item in obj]
+    elif isinstance(obj, dict):
+        return {k: _clean_entity_strings(v) for k, v in obj.items()}
+    return obj
 
 import requests
 from bs4 import BeautifulSoup
@@ -336,16 +356,31 @@ def extract_jsonld_blocks(html: str) -> list[dict]:
         raw = re.sub(r"/\*\s*\]\]>\s*\*/", "", raw)
         raw = raw.strip()
 
+        parsed = None
+        # 1. Attempt direct JSON parsing
         try:
             parsed = json.loads(raw, strict=False)
         except json.JSONDecodeError:
+            pass
+
+        # 2. Defensive HTML entity unescaping (extruct-inspired KSES rescue)
+        if parsed is None:
+            unescaped_raw = _defensive_unescape_json_str(raw)
             try:
-                # Attempt to clean trailing commas before bracket/brace
-                cleaned = re.sub(r",\s*([\]}])", r"\1", raw)
-                parsed = json.loads(cleaned, strict=False)
-            except json.JSONDecodeError as exc:
-                _log_warning(f"Failed to parse JSON-LD script content: {exc}")
-                continue
+                parsed = json.loads(unescaped_raw, strict=False)
+            except json.JSONDecodeError:
+                try:
+                    # Strip block comments and single-line comments not part of URLs
+                    cleaned = re.sub(r"/\*.*?\*/", "", unescaped_raw, flags=re.DOTALL)
+                    cleaned = re.sub(r"(?<!:)//[^\r\n]*", "", cleaned)
+                    cleaned = re.sub(r",\s*([\]}])", r"\1", cleaned)
+                    parsed = json.loads(cleaned, strict=False)
+                except json.JSONDecodeError as exc:
+                    _log_warning(f"Failed to parse JSON-LD script content: {exc}")
+                    continue
+
+        # Clean entity strings to normalize any internal double-escaped entities
+        parsed = _clean_entity_strings(parsed)
 
         if isinstance(parsed, list):
             for item in parsed:

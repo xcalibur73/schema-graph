@@ -231,6 +231,58 @@ class TestExtractorComprehensive(unittest.TestCase):
         with self.assertRaises(requests.RequestException):
             fetch_page_html("https://invalid.domain.test")
 
+    def test_defensive_unescape_kses_jsonld(self):
+        # Mangled KSES script tag with HTML entity encoded quotes and ampersands
+        html = """
+        <html><head>
+        <script type="application/ld+json">
+        {&quot;@context&quot;: &quot;https://schema.org&quot;, &quot;@type&quot;: &quot;Organization&quot;, &quot;name&quot;: &quot;Acme &amp;#038; Sons&quot;}
+        </script>
+        </head><body></body></html>
+        """
+        blocks = extract_jsonld_blocks(html)
+        self.assertEqual(len(blocks), 1)
+        self.assertEqual(blocks[0]["@type"], "Organization")
+        self.assertEqual(blocks[0]["name"], "Acme & Sons")
+
+    def test_clean_entity_strings_double_encoded(self):
+        html = """
+        <html><head>
+        <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "name": "Design &amp;amp; Architecture",
+            "description": "Guides &amp;#038; Tutorials"
+        }
+        </script>
+        </head><body></body></html>
+        """
+        blocks = extract_jsonld_blocks(html)
+        self.assertEqual(len(blocks), 1)
+        self.assertEqual(blocks[0]["name"], "Design & Architecture")
+        self.assertEqual(blocks[0]["description"], "Guides & Tutorials")
+
+    def test_commented_jsonld_with_trailing_commas(self):
+        html = """
+        <html><head>
+        <script type="application/ld+json">
+        {
+            "@context": "https://schema.org", // main schema context
+            "@type": "Organization",
+            /* developer notes: official name */
+            "name": "Acme Global",
+            "url": "https://example.com/org", // official url
+        }
+        </script>
+        </head><body></body></html>
+        """
+        blocks = extract_jsonld_blocks(html)
+        self.assertEqual(len(blocks), 1)
+        self.assertEqual(blocks[0]["name"], "Acme Global")
+        self.assertEqual(blocks[0]["url"], "https://example.com/org")
+
 
 if __name__ == "__main__":
     unittest.main()
+
