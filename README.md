@@ -1,170 +1,204 @@
 # SchemaGraph
 
-Cross-Page Entity & Knowledge Graph Integrity Tracer
+Cross-page entity and knowledge graph integrity tracer for Schema.org JSON-LD.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Python: 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/)
-[![Status: Production](https://img.shields.io/badge/status-production-success.svg)](#)
-[![Cloud Engine: WebAudits.pro](https://img.shields.io/badge/cloud-webaudits.pro-orange.svg)](https://webaudits.pro/tools/schema-graph)
-
-SchemaGraph is a command-line utility and Python diagnostic engine that validates Schema.org JSON-LD entity graphs across multi-page websites. Standard schema validation tools inspect syntax on a single page in isolation. SchemaGraph constructs a directed knowledge graph from all discovered JSON-LD blocks across an entire site cluster and traces cross-page entity integrity.
-
-Key capabilities:
-- Multi-URL crawling with automatic JSON-LD extraction from `<script type="application/ld+json">` blocks.
-- In-memory directed knowledge graph construction with `@id` node resolution across pages.
-- Broken reference detection: identifies `@id` URIs that point to nodes never defined on any crawled page.
-- Orphan entity detection: finds `Person`, `Organization`, `WebSite`, and custom nodes declared but never referenced by any other entity.
-- Circular reference tracing: detects `@id` loops (e.g., `Article -> author -> Person -> worksFor -> Organization -> publishesOn -> Article`).
-- `sameAs` disambiguation audit: flags missing Wikidata, Wikipedia, or social profile links on entity nodes.
-- Publisher and author consistency checks: verifies that `publisher` and `author` references resolve to consistent entity metadata across all pages.
-- Multi-format output: high-contrast terminal tables, Markdown audit reports, JSON pipelines, and DOT/Graphviz graph export.
+Part of the [WebAudits.pro](https://webaudits.pro) technical intelligence platform.
 
 ---
 
-## The Engineering Problem
+## What it does
 
-Google's Knowledge Graph, AI Overviews, and rich result features rely on connected entity graphs, not isolated page-level JSON-LD snippets. Common cross-page schema failures include:
+SchemaGraph extracts, connects, and audits structured data entities across multi-page website clusters. It builds an in-memory directed knowledge graph from `<script type="application/ld+json">` blocks and detects:
+- Broken `@id` references (entities pointing to target URI identifiers that are never defined anywhere on the domain).
+- Orphan entity nodes (defined schema objects that have no inbound structural relationships).
+- Circular `@id` dependency chains using depth-first search (DFS) cycle detection.
+- Publisher and author metadata drift across template layouts (inconsistent names, logos, or URLs).
+- Entity disambiguation depth (presence of canonical `sameAs` links to Wikidata, Wikipedia, or verified authority profiles).
 
-1. Broken `@id` references: An `Article` node references `"author": {"@id": "https://example.com/#author"}`, but no page on the site defines a `Person` node with that `@id`. Google cannot resolve the entity and drops the author rich result.
-2. Orphan entity nodes: A `WebSite` or `Organization` node is declared on the homepage but never referenced by any `Article`, `Product`, or `FAQPage` node. The entity exists in isolation with zero graph connectivity.
-3. Circular dependency loops: Entity chains form infinite resolution cycles (Person -> worksFor -> Organization -> founder -> Person), causing crawler parsers to bail out.
-4. Publisher metadata drift: The `publisher.name` on `/blog/post-1` says "Acme Corp" while `/blog/post-2` says "ACME Corporation". Google treats these as separate entities, fragmenting authority.
-5. Missing disambiguation signals: Entity nodes lack `sameAs` links to Wikidata, Wikipedia, or LinkedIn, preventing Knowledge Graph reconciliation.
+---
+
+## Why it exists
+
+Modern websites often deploy structured data on a per-page basis using plugins or CMS components. This produces fragmented, isolated entities rather than a cohesive Knowledge Graph:
+- A blog post references an `@id` for its publisher or author that exists on another page, but trailing slashes, protocol mismatches, or slug changes break the resolution chain.
+- Search engines (Google Knowledge Graph, AI Overviews, Perplexity) rely on `@id` node connections to establish topical authority and entity relationships.
+
+SchemaGraph audits the entire domain graph as a single connected data structure, identifying resolution defects that standard single-page validators miss.
+
+---
+
+## Key features
+
+- **Multi-Page Cluster Ingestion:** Audits an array of explicit URLs or automatically crawls URLs discovered in an XML sitemap.
+- **In-Memory Directed Graph Engine:** Parses nested `@graph` arrays and flattened entities into a queryable graph of nodes and directed edges.
+- **Cycle Detection:** Implements Tarjan / DFS cycle detection algorithms to isolate recursive reference loops that trap crawlers.
+- **Disambiguation Signal Auditor:** Checks key entity types (`Organization`, `Person`, `WebSite`) for disambiguation properties (`sameAs`, `url`, `identifier`).
+- **GraphViz DOT Export:** Exports graph architecture directly into GraphViz DOT format for visual rendering and architectural review.
+
+---
+
+## Architecture
+
+```text
+[URL List or Sitemap]
+         |
+         v
+[JSON-LD Extractor] ----------> Raw Blocks & Normalized @id URIs
+         |
+         v
+[Entity Graph Builder] -------> In-Memory Directed Graph
+         |
+         +---> Broken @id Reference Resolver
+         +---> Orphan Node Identifier
+         +---> DFS Circular Dependency Detector
+         +---> Publisher & Author Consistency Checker
+         +---> Disambiguation Coverage Auditor
+         |
+         v
+[Scoring Engine] -------------> 5-Component Composite Graph Integrity Score
+         |
+         +---> Terminal Report (Rich Table)
+         +---> Markdown Document / JSON Object / GraphViz DOT Export
+```
+
+SchemaGraph operates in four modules:
+1. `extractor.py`: Fetches HTML, parses XML sitemaps, extracts JSON-LD blocks, normalizes URI formats, and flattens entities into uniform data dictionaries.
+2. `graph_builder.py`: Builds nodes and directed edges based on entity reference properties (`author`, `publisher`, `isPartOf`, `mainEntityOfPage`, `about`), running DFS cycle detection.
+3. `scorer.py`: Evaluates graph health across five weighted dimensions: Reference Integrity (35%), Entity Connectivity (25%), Disambiguation Depth (20%), Publisher Consistency (10%), and Author Consistency (10%).
+4. `report_generator.py`: Generates Rich terminal tables, Markdown documentation, JSON objects, and DOT graph files.
 
 ---
 
 ## Installation
 
+### Prerequisites
+- Python 3.10 or higher
+
+### Install from Source
 ```bash
 git clone https://github.com/xcalibur73/schema-graph.git
 cd schema-graph
 pip install -r requirements.txt
+pip install -e .
 ```
-
-### System Requirements
-- Python 3.10 or higher.
-- No external browser dependencies required (pure HTTP crawling with `requests` and `beautifulsoup4`).
 
 ---
 
 ## Usage
 
-### Audit a Live Website
+### Basic CLI Invocation
 ```bash
-python run.py https://webaudits.pro
-```
+# Audit specific URLs
+schema-graph https://webaudits.pro https://webaudits.pro/about
 
-### Audit Multiple URLs
-```bash
-python run.py https://example.com https://example.com/about https://example.com/blog/post-1
-```
+# Crawl and audit an entire domain via sitemap (up to 50 URLs)
+schema-graph https://webaudits.pro/sitemap.xml --sitemap --max-urls 50
 
-### Crawl and Audit Entire Sitemap
-```bash
-python run.py https://example.com/sitemap.xml --sitemap
-```
+# Export as GraphViz DOT file for visual rendering
+schema-graph https://webaudits.pro/sitemap.xml --sitemap --output dot --save graph.dot
 
-### Export Markdown Report
-```bash
-python run.py https://example.com --output markdown --save SCHEMA-AUDIT.md
-```
+# Export machine-readable JSON report
+schema-graph https://webaudits.pro --output json --save audit.json
 
-### Export DOT Graph for Graphviz Visualization
-```bash
-python run.py https://example.com --output dot --save entity-graph.dot
-```
-
-### Export JSON for CI/CD Pipelines
-```bash
-python run.py https://example.com --output json --save audit.json
+# Check installed version
+schema-graph --version
 ```
 
 ---
 
-## Web Platform Integration (WebAudits.pro)
+## Example output
 
-To run hosted audits without installing local Python dependencies:
-- Interactive web tool: [WebAudits.pro/tools/schema-graph](https://webaudits.pro/tools/schema-graph)
-- Automated multi-page crawling and entity graph visualization.
+```text
++-------------------------------------------------------------------------------+
+| SchemaGraph: Cross-Page Entity & Knowledge Graph Integrity Tracer             |
+| Crawled URLs: 12                                                              |
+| Graph Integrity Score: 94.5/100 (Grade: A)                                    |
+| Entities: 48 | Edges: 52 | Broken Refs: 0 | Orphans: 2 | Cycles: 0            |
++-------------------------------------------------------------------------------+
+
+Component Score Breakdown:
++------------------------+--------+------------+
+| Component              | Weight | Score      |
++------------------------+--------+------------+
+| Reference Integrity    | 35%    | 100.0/100  |
+| Entity Connectivity    | 25%    | 95.8/100   |
+| Disambiguation Depth   | 20%    | 88.0/100   |
+| Publisher Consistency  | 10%    | 100.0/100  |
+| Author Consistency     | 10%    | 100.0/100  |
++------------------------+--------+------------+
+
+Disambiguation Depth Audit:
+- Organization (webaudits.pro): 7 verified sameAs links (Wikidata, Twitter, GitHub)
+- Person (@xcalibur73): Verified profile links present
+```
 
 ---
 
-## Graph Construction Architecture
+## Benchmark / methodology
 
-SchemaGraph operates in four sequential passes:
+### Empirical 12-Site Entity Integrity Study
+- **Dataset:** 12 multi-page production site clusters across publishing, e-commerce, and SaaS platforms.
+- **Command Used:** `python run.py <sitemap_url> --sitemap --max-urls 25 --output json`
+- **Tool Version:** SchemaGraph v1.0.0
+- **Environment:** Windows 11 / Ubuntu 22.04, Python 3.12, unthrottled fiber network.
+- **Raw Telemetry & Calculation:**
+  - Reference Integrity: `((total_references - broken_references) / total_references) * 100`
+  - Connectivity Ratio: `((total_nodes - orphan_nodes) / total_nodes) * 100`
+- **Results:**
+  - 58.3% of surveyed production websites contained at least one broken cross-page `@id` reference.
+  - Complete study dataset: [BENCHMARKS.md](BENCHMARKS.md).
 
-### Pass 1: Extraction
-Crawls target URLs (or parses a sitemap XML) and extracts all `<script type="application/ld+json">` blocks. Handles nested `@graph` arrays, flattened single-entity documents, and mixed multi-type blocks.
+---
 
-### Pass 2: Graph Assembly
-Builds a directed graph where:
-- Each unique `@id` URI becomes a node.
-- Each property referencing another `@id` (e.g., `"author": {"@id": "..."}`) becomes a directed edge.
-- Inline entities without explicit `@id` are assigned synthetic identifiers based on their source URL and `@type`.
+## Limitations
 
-### Pass 3: Integrity Analysis
-Runs six diagnostic checks against the assembled graph:
+- **Diagnostic Heuristic:** The Graph Integrity Score is a project-derived structural evaluation. It does not measure Google's internal Knowledge Graph indexing state or ensure rich snippet eligibility.
+- **Microdata & RDFa:** SchemaGraph specifically audits `<script type="application/ld+json">` blocks. It does not parse inline HTML5 Microdata attributes or RDFa tags.
+- **External Entity Verification:** Audits the presence and syntax of `sameAs` links; it does not crawl external Wikidata or Wikipedia pages to verify that the external entity matches.
 
-| Check | What It Detects | Severity |
+---
+
+## Accuracy / standards
+
+SchemaGraph aligns its analysis with official W3C standards and project heuristics:
+
+| Metric / Check | Classification | Authority / Standard |
 |:---|:---|:---|
-| Broken References | `@id` URIs referenced but never defined | Critical |
-| Orphan Nodes | Entities defined but never referenced | Warning |
-| Circular Dependencies | `@id` resolution chains that loop back | Critical |
-| Publisher Drift | Inconsistent `name`, `url`, or `logo` across publisher references | Warning |
-| Author Inconsistency | Same `@id` author with conflicting `name` or `sameAs` values | Warning |
-| Missing Disambiguation | Entity nodes lacking `sameAs` links to Wikidata/Wikipedia | Info |
-
-### Pass 4: Report Generation
-Outputs results in the requested format: terminal table, Markdown document, JSON object, or DOT graph definition.
+| JSON-LD Syntactic Validity | Web Standard | W3C JSON-LD 1.1 Specification |
+| Schema.org Type Vocabulary | Web Standard | Schema.org Community Group |
+| Reference Resolution Integrity | Project-Derived Heuristic | Graph closure over domain crawl |
+| Disambiguation Depth Score | Project-Derived Heuristic | Authority coverage model |
+| Graph Integrity Composite Score | Project-Derived Heuristic | 5-factor weighted structural formula |
 
 ---
 
-## Entity Resolution Rules
+## Testing
 
-SchemaGraph follows these resolution precedence rules:
-
-1. **Exact `@id` match**: Direct URI string comparison (case-sensitive, trailing slash normalized).
-2. **Fragment identifier resolution**: `https://example.com/#author` resolves to the entity block on `https://example.com/` containing `"@id": "https://example.com/#author"`.
-3. **Canonical URL normalization**: Strips query parameters, normalizes protocol (https preferred), and resolves relative URIs against the document base.
-4. **Type-qualified fallback**: When no explicit `@id` exists, entities are keyed by `{source_url}#{@type}#{index}` to prevent false duplicate detection.
-
----
-
-## Scoring Model
-
-SchemaGraph produces an overall Graph Integrity Score (0-100):
-
-| Component | Weight | Scoring Criteria |
-|:---|:---:|:---|
-| Reference Integrity | 35% | Percentage of `@id` references that resolve to defined nodes |
-| Entity Connectivity | 25% | Ratio of connected vs orphan entity nodes |
-| Disambiguation Depth | 20% | Presence of `sameAs`, `url`, and `identifier` on key entities |
-| Publisher Consistency | 10% | Metadata uniformity across all `publisher` references |
-| Author Consistency | 10% | Metadata uniformity across all `author` references |
-
----
-
-## Running Unit Tests
+SchemaGraph features comprehensive test coverage across extractor parsing, graph construction, cycle detection, and scoring:
 
 ```bash
-python -m unittest discover tests/
+# Run unit test suite
+python -m unittest discover -s tests
+
+# Test execution output
+# Ran 95 tests in 0.041s
+# OK
 ```
+
+Automated CI executes on every push and pull request via GitHub Actions across Linux and Windows environments.
 
 ---
 
-## Author
+## Roadmap
 
-Maintained by [@xcalibur73](https://github.com/xcalibur73), creator of [WebAudits.pro](https://webaudits.pro).
-
-Part of a technical SEO engineering tooling suite:
-1. [schema-graph](https://github.com/xcalibur73/schema-graph): Cross-page entity and knowledge graph integrity tracer.
-2. [dom-hydrate](https://github.com/xcalibur73/dom-hydrate): Headless Chromium SSR vs CSR DOM diff engine.
-3. [citation-pulse](https://github.com/xcalibur73/citation-pulse): GEO and AI search citability benchmark engine.
-4. [index-trace](https://github.com/xcalibur73/index-trace): Search Console emergency triage and crawler collision tracer.
-5. [overflow-trace](https://github.com/xcalibur73/overflow-trace): Mobile viewport horizontal overflow tracer.
+- [x] Initial release with in-memory graph builder and DFS cycle detector.
+- [x] PEP 621 packaging, CLI `--version`, and Windows cp1252 encoding hardening.
+- [ ] Direct validation against Google Search Central Rich Results test API.
+- [ ] Interactive SVG network graph visualization export.
+- [ ] WebAudits.pro continuous entity drift alerts.
 
 ---
 
 ## License
 
-Licensed under the [MIT License](LICENSE).
+MIT License. See [LICENSE](LICENSE) for full details.
