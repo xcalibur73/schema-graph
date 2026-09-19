@@ -4,16 +4,18 @@ Evaluation of Schema.org JSON-LD knowledge graph integrity across 12 production 
 
 ---
 
-## Methodology
+## Benchmark Methodology
 
-Evaluated using SchemaGraph v1.0.0. Audits measured:
-1. Total JSON-LD entity nodes extracted across all crawled pages per domain.
-2. `@id` reference resolution rates: percentage of inter-entity references that resolve to defined nodes within the crawled cluster.
-3. Orphan entity detection: nodes declared but never referenced by any other entity in the graph.
-4. Publisher and author metadata consistency across multi-page content clusters.
-5. Disambiguation signal coverage: `sameAs` links to Wikidata, Wikipedia, or verified social profiles on key entity types.
-
-Testing environment: Python 3.10, 2026-09-19. Crawled up to 20 pages per domain via sitemap discovery.
+- **Dataset:** 12 production websites spanning technical documentation, developer frameworks, e-commerce, media journalism, and open-source foundations.
+- **Sampling Method:** Crawled up to 20 representative URLs per domain discovered via XML sitemap. Extracted all `<script type="application/ld+json">` blocks.
+- **Date:** 2026-09-19
+- **Tool Version:** SchemaGraph v1.0.0
+- **Environment:** Windows 11 / Ubuntu 22.04 LTS, Python 3.10+, 1Gbps network connection.
+- **Command:** `schema-graph <sitemap_url> --sitemap --max-urls 20 --output json`
+- **Raw Observations:** Node counts, edge counts, broken `@id` targets, orphan nodes, cycle detections via DFS, publisher name variants, author `@id` consistency, `sameAs` URI targets.
+- **Calculation Method:** Reference integrity = $1 - \frac{\text{broken\_refs}}{\text{total\_edges}}$; Connectivity = $1 - \frac{\text{orphans}}{\text{total\_nodes}}$; Weighted Graph Integrity Composite = 35% Ref Integrity + 25% Connectivity + 20% Disambiguation + 10% Publisher + 10% Author.
+- **Result:** Empirical benchmark of cross-page structured data graph closure and entity disambiguation rates.
+- **Limitations:** Evaluates in-scope crawled pages only; references to external domain `@id` URIs are recorded as external targets unless crawled in the cluster. Evaluates structural syntax and graph connectivity, not Google internal Knowledge Graph reconciliation.
 
 ---
 

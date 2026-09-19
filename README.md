@@ -28,9 +28,9 @@ schema-graph https://example.com/sitemap.xml --sitemap --max-urls 25
 
 ## What It Does & Why It Matters
 
-SchemaGraph extracts, connects, and audits structured data entities across multi-page website clusters. It builds an in-memory directed knowledge graph from `<script type="application/ld+json">` blocks to evaluate cross-page entity integrity.
+SchemaGraph extracts, connects, and audits structured data entities across multi-page website clusters. It builds an in-memory directed knowledge graph from `<script type="application/ld+json">` blocks to detect cross-page entity inconsistencies that may reduce structured-data clarity or search feature eligibility.
 
-Google Search Central documentation explicitly recommends using connected `@id` graph nodes to establish clear relationships between content, authors, and publishing organizations. In modern CMS architectures, plugins frequently generate structured data on a per-page basis without verifying cross-page URI consistency.
+While Google's documentation confirms that structured data helps search engines understand content and can enable eligibility for supported search features, modern CMS plugins frequently emit JSON-LD blocks on an isolated, per-page basis. This leads to fragmented entity graphs where pages reference author or publisher `@id` nodes that are never defined within the crawl scope.
 
 SchemaGraph audits the entire domain graph as a single connected data structure to detect:
 - **Broken `@id` References:** Entities referencing target URIs that are never defined anywhere on the domain.
@@ -38,6 +38,26 @@ SchemaGraph audits the entire domain graph as a single connected data structure 
 - **Circular Dependency Chains:** Recursive reference loops detected via depth-first search (DFS).
 - **Publisher & Author Consistency:** Attribute drift across templates (differing names, logos, or URLs for the same entity).
 - **Disambiguation Coverage:** Presence of verified `sameAs` links to Wikidata, Wikipedia, or authority profiles on key entities (`Organization`, `Person`).
+
+---
+
+## Visual Diagnostic Workflow
+
+```text
+[Input URLs or Sitemap]
+          |
+          v
+[1. Extract JSON-LD Blocks] --------> Found: 48 entities across 12 pages
+          |
+          v
+[2. Build Directed Knowledge Graph] -> Finding: Article node references author @id "https://example.com/#author-jane"
+          |                            Status: Target URI is NOT defined in any crawled document
+          v
+[3. Isolate Graph Root Cause] -------> Diagnosis: Author schema only emitted on /author/jane page, not on post templates
+          |
+          v
+[4. Recommended Fix] ----------------> Inject minimal Author node or consolidate @id URIs to preserve entity graph clarity
+```
 
 ---
 
