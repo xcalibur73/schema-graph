@@ -15,6 +15,24 @@ except ImportError:
     HAS_RICH = False
 
 
+def _safe_str(text: Any) -> str:
+    if not isinstance(text, str):
+        text = str(text or "")
+    text = (
+        text.replace("\u2192", "->")
+        .replace("\u2190", "<-")
+        .replace("\u2194", "<->")
+        .replace("\u2022", "*")
+        .replace("\u2019", "'")
+        .replace("\u2018", "'")
+        .replace("\u201c", '"')
+        .replace("\u201d", '"')
+        .replace("\u2014", "-")
+        .replace("\u2013", "-")
+    )
+    return text.encode("ascii", errors="replace").decode("ascii")
+
+
 def _severity_color(severity: str) -> str:
     """Map severity label to rich color."""
     return {
@@ -86,7 +104,12 @@ def print_terminal_report(
         br_table.add_column("Property", style="dim")
         br_table.add_column("Source URL", style="dim")
         for ref in broken_refs[:20]:
-            br_table.add_row(ref["target_id"], ref.get("source_id", ""), ref.get("property", ""), ref.get("source_url", ""))
+            br_table.add_row(
+                _safe_str(ref["target_id"]),
+                _safe_str(ref.get("source_id", "")),
+                _safe_str(ref.get("property", "")),
+                _safe_str(ref.get("source_url", "")),
+            )
         console.print(br_table)
 
     # Orphan nodes
@@ -97,7 +120,12 @@ def print_terminal_report(
         orph_table.add_column("Name", style="dim")
         orph_table.add_column("Source URL", style="dim")
         for node in orphan_nodes[:20]:
-            orph_table.add_row(node.get("id", ""), node.get("type", ""), node.get("name", ""), node.get("source_url", ""))
+            orph_table.add_row(
+                _safe_str(node.get("id", "")),
+                _safe_str(node.get("type", "")),
+                _safe_str(node.get("name", "")),
+                _safe_str(node.get("source_url", "")),
+            )
         console.print(orph_table)
 
     # Circular references
@@ -105,7 +133,7 @@ def print_terminal_report(
         cyc_table = Table(title="Circular @id Resolution Chains (CRITICAL)", show_header=True, header_style="bold red")
         cyc_table.add_column("Cycle Path", style="red")
         for cycle in cycles[:10]:
-            cyc_table.add_row(" -> ".join(cycle))
+            cyc_table.add_row(" -> ".join(_safe_str(c) for c in cycle))
         console.print(cyc_table)
 
     # Disambiguation gaps
@@ -122,7 +150,12 @@ def print_terminal_report(
                 missing_items.append("sameAs")
             if not d.get("has_url"):
                 missing_items.append("url")
-            dis_table.add_row(d.get("id", ""), d.get("type", ""), d.get("name", ""), ", ".join(missing_items))
+            dis_table.add_row(
+                _safe_str(d.get("id", "")),
+                _safe_str(d.get("type", "")),
+                _safe_str(d.get("name", "")),
+                ", ".join(missing_items),
+            )
         console.print(dis_table)
 
     # Publisher consistency

@@ -117,14 +117,21 @@ def run_audit(urls: list[str]) -> dict:
 
 
 def main():
+    from schema_graph import __version__
     parser = argparse.ArgumentParser(
+        prog="schema-graph",
         description="SchemaGraph: Cross-Page Entity & Knowledge Graph Integrity Tracer",
         epilog="Example: python run.py https://webaudits.pro --sitemap",
     )
     parser.add_argument(
         "urls",
-        nargs="+",
+        nargs="*",
         help="One or more URLs to audit, or a sitemap URL with --sitemap flag.",
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"SchemaGraph v{__version__}",
     )
     parser.add_argument(
         "--sitemap",
@@ -151,6 +158,9 @@ def main():
     )
 
     args = parser.parse_args()
+    if not args.urls:
+        parser.print_help()
+        return 0
 
     # Resolve URLs
     urls = args.urls

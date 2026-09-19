@@ -3,6 +3,9 @@ Unit tests for SchemaGraph entity graph integrity modules.
 """
 
 import unittest
+import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import json
 from schema_graph.extractor import extract_jsonld_blocks, flatten_entities, normalize_id
 from schema_graph.graph_builder import (

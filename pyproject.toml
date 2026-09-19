@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "schema-graph"
+version = "1.0.0"
+description = "Cross-page Schema.org JSON-LD knowledge graph builder and integrity analyzer"
+readme = "README.md"
+authors = [
+  { name = "xcalibur73" }
+]
+license = { text = "MIT" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Internet :: WWW/HTTP :: Indexing/Search",
+    "Topic :: Software Development :: Quality Assurance"
+]
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.28.0",
+    "beautifulsoup4>=4.12.0",
+    "rich>=13.0.0"
+]
+
+[project.scripts]
+schema-graph = "schema_graph.cli:main"
+
+[project.urls]
+"Homepage" = "https://github.com/xcalibur73/schema-graph"
+"Cloud Engine" = "https://webaudits.pro/tools/schema-graph"
+"Bug Tracker" = "https://github.com/xcalibur73/schema-graph/issues"
