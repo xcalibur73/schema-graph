@@ -30,6 +30,11 @@ dependencies = [
 [project.scripts]
 schema-graph = "schema_graph.cli:main"
 
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["schema_graph*"]
+exclude = ["assets*", "tests*"]
+
 [project.urls]
 "Homepage" = "https://github.com/xcalibur73/schema-graph"
 "Cloud Engine" = "https://webaudits.pro/tools/schema-graph"
