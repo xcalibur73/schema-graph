@@ -13,7 +13,9 @@ authors = [
 license = { text = "MIT" }
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
+    # PolyForm Noncommercial 1.0.0
+    "License :: Free For Educational Use",
+    "License :: Free For Non-commercial Use",
     "Operating System :: OS Independent",
     "Topic :: Internet :: WWW/HTTP :: Indexing/Search",
     "Topic :: Software Development :: Quality Assurance"

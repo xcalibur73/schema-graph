@@ -1,21 +1,59 @@
-MIT License
+PolyForm Noncommercial License 1.0.0
 
-Copyright (c) 2026 xcalibur73
+<https://polyformproject.org/licenses/noncommercial/1.0.0>
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Copyright (c) 2026 xcalibur73 (https://www.webaudits.pro)
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+## Purpose
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+This license allows you to use this software for any noncommercial purpose.
+
+## Agreement
+
+In order to receive this license, you have to agree to its terms. If you do not agree, you do not have a license to this software, and your use is unauthorized.
+
+## Notices
+
+You must ensure that anyone who gets a copy of any part of this software from you also gets a copy of this license.
+
+## Noncommercial Use
+
+You may use this software for any noncommercial purpose. You may not use this software for any commercial purpose.
+
+### Commercial Purposes
+
+A commercial purpose is any purpose designed to make money, generate business advantage, or commercially compete, including:
+
+1. selling the software
+2. selling or offering services with the software, such as software as a service, consulting, client auditing, or technical support
+3. embedding the software or its algorithms in a commercial product, application, or website
+4. using the software in an enterprise or commercial agency activity
+
+### Personal and Educational Uses
+
+You may use this software for:
+
+1. personal evaluation that does not involve commercial business activity
+2. research, teaching, or education
+3. evaluating the software codebase for developer credit and architecture assessment
+
+## Commercial Licensing
+
+To use this software for commercial purposes, client audits, or website embedding, you must obtain a commercial license from Web Audits.
+Contact: audits@webaudits.pro | https://www.webaudits.pro/contact
+
+## Fair Use
+
+You may use this software in ways that the law allows anyone to use copyrighted material without a license, such as fair use.
+
+## No Other Rights
+
+These terms do not give you any other rights, such as patents, trademarks, or copyrights beyond what is expressly stated.
+
+## Defense Against Infringement Claims
+
+If someone claims that your use of the software under this license infringes their intellectual property rights, this license automatically terminates for you.
+
+## Disclaimer
+
+THIS SOFTWARE IS PROVIDED AS IS, WITHOUT ANY WARRANTY OF ANY KIND, EXPRESS OR IMPLIED.
