@@ -189,4 +189,4 @@ Automated CI workflows test graph construction, cycle detection, and extraction 
 Published under the **PolyForm Noncommercial License 1.0.0**.
 - **Personal & Educational**: Free to view, study, evaluate architecture, and run local personal tests. Full developer credit retained by [xcalibur73](https://github.com/xcalibur73).
 - **Commercial & Agency Use**: Commercial auditing, SaaS re-hosting, embedding algorithms into third-party software, or commercial client deliverables require an enterprise commercial license.
-- **Enterprise Licensing**: Contact [audits@webaudits.pro](mailto:audits@webaudits.pro) or visit [webaudits.pro](https://www.webaudits.pro).
+- **Enterprise Licensing**: Contact [sfs@webaudits.pro](mailto:sfs@webaudits.pro) or visit [webaudits.pro](https://www.webaudits.pro).
