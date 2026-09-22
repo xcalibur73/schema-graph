@@ -1,5 +1,9 @@
 # SchemaGraph
 
+> [!NOTE]
+> **Public Architecture & Distribution Notice**: This repository provides the open-source CLI interface, demonstration fixtures, and automated test suite. Full-scale headless browser automation, real-time CDP continuous profiling, and automated white-label client PDF reporting are exclusively hosted on the [WebAudits.pro](https://www.webaudits.pro) cloud platform.
+
+
 Cross-page entity and knowledge graph integrity tracer for Schema.org JSON-LD.
 
 Part of the [WebAudits.pro](https://webaudits.pro) technical intelligence platform.
