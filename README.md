@@ -5,8 +5,9 @@
 
 
 Cross-page entity and knowledge graph integrity tracer for Schema.org JSON-LD.
-
 Part of the [WebAudits.pro](https://webaudits.pro) technical intelligence platform.
+
+> **Interactive Web Tool**: Run live Schema.org JSON-LD entity and knowledge graph audits directly in your browser at [webaudits.pro/tools/schema-graph](https://webaudits.pro/tools/schema-graph).
 
 ![Terminal Verification](assets/terminal_preview.png)
 

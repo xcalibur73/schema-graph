@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed false positive in sitemap page discovery: excluded `.xml` and `.xml.gz` URLs during XML parsing to prevent child sitemaps from being crawled as orphan page nodes.
 - Hardened JSON-LD extractor against CDATA wrappers: enhanced regex sanitization to strip `<![CDATA[` and `/* <![CDATA[ */` comments without discarding valid enclosed JSON.
 
+### Added
+- Linked documentation and quickstart instructions to the interactive web tool on [webaudits.pro/tools/schema-graph](https://webaudits.pro/tools/schema-graph).
+
 ## [1.2.0] - 2026-09-20
  
 ### Added
