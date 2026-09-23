@@ -283,6 +283,44 @@ class TestExtractorComprehensive(unittest.TestCase):
         self.assertEqual(blocks[0]["url"], "https://example.com/org")
 
 
+    def test_cdata_wrapped_jsonld_extraction(self):
+        html = """
+        <html><head>
+        <script type="application/ld+json">
+        /* <![CDATA[ */
+        {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "WordPress Enterprise",
+            "url": "https://example.com"
+        }
+        /* ]]> */
+        </script>
+        </head><body></body></html>
+        """
+        blocks = extract_jsonld_blocks(html)
+        self.assertEqual(len(blocks), 1)
+        self.assertEqual(blocks[0]["name"], "WordPress Enterprise")
+
+    def test_bare_cdata_wrapped_jsonld_extraction(self):
+        html = """
+        <html><head>
+        <script type="application/ld+json">
+        <![CDATA[
+        {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "name": "CDATA Site"
+        }
+        ]]>
+        </script>
+        </head><body></body></html>
+        """
+        blocks = extract_jsonld_blocks(html)
+        self.assertEqual(len(blocks), 1)
+        self.assertEqual(blocks[0]["name"], "CDATA Site")
+
+
 if __name__ == "__main__":
     unittest.main()
 

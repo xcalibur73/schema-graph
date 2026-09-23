@@ -281,7 +281,7 @@ def parse_sitemap_urls(
             tag = elem.tag.split("}")[-1] if "}" in elem.tag else elem.tag
             if tag == "loc" and elem.text:
                 loc = elem.text.strip()
-                if loc and loc not in seen:
+                if loc and loc not in seen and not loc.lower().endswith((".xml", ".xml.gz")):
                     seen.add(loc)
                     discovered_urls.append(loc)
                     if len(discovered_urls) >= max_urls:
@@ -345,15 +345,23 @@ def extract_jsonld_blocks(html: str) -> list[dict]:
         if not raw:
             continue
 
-        # Strip HTML comments if present
+        # Strip HTML comments wrapper if the entire block is wrapped, else strip inline comments
         if raw.startswith("<!--") and raw.endswith("-->"):
             raw = raw[4:-3].strip()
+        else:
+            raw = re.sub(r"<!--[\s\S]*?-->", "", raw)
 
-        # Strip CDATA tags
-        raw = re.sub(r"^//\s*<!\[CDATA\[", "", raw, flags=re.MULTILINE)
-        raw = re.sub(r"^//\s*\]\]>", "", raw, flags=re.MULTILINE)
+        # Strip CDATA tags and wrappers
+        raw = re.sub(r"/\*\s*<!\[CDATA\[[\s\S]*?\*/", "", raw)
+        raw = re.sub(r"/\*\s*\]\]>[\s\S]*?\*/", "", raw)
         raw = re.sub(r"/\*\s*<!\[CDATA\[\s*\*/", "", raw)
         raw = re.sub(r"/\*\s*\]\]>\s*\*/", "", raw)
+        raw = re.sub(r"^//\s*<!\[CDATA\[", "", raw, flags=re.MULTILINE)
+        raw = re.sub(r"^//\s*\]\]>", "", raw, flags=re.MULTILINE)
+        raw = re.sub(r"//\s*<!\[CDATA\[", "", raw)
+        raw = re.sub(r"//\s*\]\]>", "", raw)
+        raw = re.sub(r"<!\[CDATA\[", "", raw)
+        raw = re.sub(r"\]\]>", "", raw)
         raw = raw.strip()
 
         parsed = None

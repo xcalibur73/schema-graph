@@ -17,7 +17,7 @@ from schema_graph.scorer import (
     score_graph,
 )
 
-__version__ = "1.2.0"
+__version__ = "1.2.1"
 
 __all__ = [
     "ComponentScores",
